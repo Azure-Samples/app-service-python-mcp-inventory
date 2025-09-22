@@ -41,7 +41,7 @@ SAMPLE_INVENTORY = [
         "name": "Red Slim Fit Checked Casual Shirt",
         "category": "Shirts",
         "price": 59.99,
-        "description": "Button-down slim casuak shirt with checkered pattern",
+        "description": "Button-down slim casual shirt with checkered pattern",
         "sizes": {
             "XS": 5,
             "S": 8,
