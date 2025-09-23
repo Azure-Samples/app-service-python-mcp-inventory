@@ -107,29 +107,7 @@ function showUrlModal(url) {
     content.querySelector('input').select();
 }
 
-// Reset database function
-function resetDatabase() {
-    const statusElement = document.getElementById('reset-status');
-    statusElement.textContent = 'Resetting database...';
-    
-    fetch('/reset-database')
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                statusElement.textContent = 'Database reset successfully! Refreshing page...';
-                // Refresh the page after 1.5 seconds
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            } else {
-                statusElement.textContent = `Error: ${data.message}`;
-            }
-        })
-        .catch(error => {
-            console.error('Error resetting database:', error);
-            statusElement.textContent = 'Failed to reset database. See console for details.';
-        });
-}
+
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
@@ -146,14 +124,5 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Add visual feedback for reset button
-    const resetButton = document.querySelector('.reset-btn');
-    if (resetButton) {
-        resetButton.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-1px)';
-        });
-        resetButton.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-        });
-    }
+
 });

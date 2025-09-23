@@ -89,17 +89,7 @@ h1 {
     background: #0d47a1;
 }
 
-.reset-btn {
-    background: #ff9800;
-}
 
-.reset-btn:hover {
-    background: #f57c00;
-}
-
-.reset-btn:active {
-    background: #e65100;
-}
 
 .stats-grid {
     display: grid;
@@ -281,3 +271,5 @@ h1 {
 .copy-btn {
     transition: all 0.2s ease;
 }
+
+
