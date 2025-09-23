@@ -43,8 +43,20 @@ class UpdateQuantityRequest(BaseModel):
 
 
 # Database setup
-def init_database():
+def init_database(force_reload=False):
     """Initialize SQLite database with sample data"""
+    # Import fresh data if requested
+    if force_reload:
+        # Force reload the inventory_data module
+        import importlib
+        import inventory_data
+        importlib.reload(inventory_data)
+        # Re-import SAMPLE_INVENTORY to get fresh data
+        from inventory_data import SAMPLE_INVENTORY as FRESH_INVENTORY
+        data_to_use = FRESH_INVENTORY
+    else:
+        data_to_use = SAMPLE_INVENTORY
+    
     conn = sqlite3.connect('inventory.db')
     cursor = conn.cursor()
     
@@ -69,21 +81,30 @@ def init_database():
         )
     ''')
     
-    # Check if data already exists
-    cursor.execute('SELECT COUNT(*) FROM items')
-    if cursor.fetchone()[0] == 0:
-        # Insert sample data
-        for item in SAMPLE_INVENTORY:
+    # If force reload, clear existing data
+    if force_reload:
+        cursor.execute('DELETE FROM item_sizes')
+        cursor.execute('DELETE FROM items')
+    else:
+        # Check if data already exists
+        cursor.execute('SELECT COUNT(*) FROM items')
+        if cursor.fetchone()[0] > 0:
+            conn.commit()
+            conn.close()
+            return
+    
+    # Insert sample data
+    for item in data_to_use:
+        cursor.execute('''
+            INSERT INTO items (id, name, category, price, description)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (item['id'], item['name'], item['category'], item['price'], item['description']))
+        
+        for size, quantity in item['sizes'].items():
             cursor.execute('''
-                INSERT INTO items (id, name, category, price, description)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (item['id'], item['name'], item['category'], item['price'], item['description']))
-            
-            for size, quantity in item['sizes'].items():
-                cursor.execute('''
-                    INSERT INTO item_sizes (item_id, size, quantity)
-                    VALUES (?, ?, ?)
-                ''', (item['id'], size, quantity))
+                INSERT INTO item_sizes (item_id, size, quantity)
+                VALUES (?, ?, ?)
+            ''', (item['id'], size, quantity))
     
     conn.commit()
     conn.close()
@@ -221,8 +242,14 @@ def search_items(query: str) -> List[Dict[str, Any]]:
 # FastAPI application setup
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
-    init_database()
+    # Startup - always check for updated data
+    try:
+        # Try to force reload on startup to ensure the latest data is used
+        init_database(force_reload=True)
+    except Exception as e:
+        print(f"Error reloading data on startup: {e}")
+        # Fall back to regular initialization if reload fails
+        init_database()
     yield
     # Shutdown (nothing to do)
 
@@ -257,6 +284,30 @@ async def debug_info():
             "templates": os.path.exists("templates"),
         }
     }
+
+
+# Add a reset database endpoint
+@app.get("/reset-database")
+async def reset_database():
+    """Reset database and reimport data from inventory_data.py"""
+    try:
+        # Initialize database with fresh data (force reload)
+        init_database(force_reload=True)
+        
+        # Get the updated inventory
+        items = get_inventory()
+        
+        return {
+            "status": "success",
+            "message": "Database has been reset and reinitialized with fresh data",
+            "items_count": len(items),
+            "sample_data": items[:2]  # Show first two items for verification
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to reset database: {str(e)}"
+        }
 
 
 # MCP Tool Functions

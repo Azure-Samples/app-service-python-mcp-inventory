@@ -71,7 +71,7 @@ h1 {
     font-size: 0.9rem;
 }
 
-.copy-btn {
+.copy-btn, .reset-btn {
     background: #2196f3;
     color: white;
     border: none;
@@ -81,12 +81,24 @@ h1 {
     font-size: 0.9rem;
 }
 
-.copy-btn:hover {
+.copy-btn:hover, .reset-btn:hover {
     background: #1976d2;
 }
 
-.copy-btn:active {
+.copy-btn:active, .reset-btn:active {
     background: #0d47a1;
+}
+
+.reset-btn {
+    background: #ff9800;
+}
+
+.reset-btn:hover {
+    background: #f57c00;
+}
+
+.reset-btn:active {
+    background: #e65100;
 }
 
 .stats-grid {
